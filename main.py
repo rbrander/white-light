@@ -33,8 +33,12 @@ def main():
 
 
   buch_ui = pygame.image.load(os.path.join("assets","buch-ui.png")).convert_alpha()
-  left_guage = buch_ui.subsurface(pygame.Rect(11, 18, 92, 64))
-  left_guage_dest_rect = left_guage.get_rect(center=(WIDTH//2 - 100, HEIGHT//2 - 100))
+  left_guage_raw = buch_ui.subsurface(pygame.Rect(11, 18, 84, 64))
+  left_guage_raw_dest_rect = left_guage_raw.get_rect(center=(WIDTH//2 - 100, HEIGHT//2 - 100))
+  GUAGE_SIZE_MULTIPLIER = 2
+  left_guage = pygame.transform.scale(left_guage_raw, (left_guage_raw_dest_rect.width * GUAGE_SIZE_MULTIPLIER, left_guage_raw_dest_rect.height * GUAGE_SIZE_MULTIPLIER))
+  left_guage_dest_rect = left_guage.get_rect(center=(WIDTH//2 - 100*GUAGE_SIZE_MULTIPLIER, HEIGHT//2 - 100*GUAGE_SIZE_MULTIPLIER))
+
 
   sprite_sheet = pygame.image.load(os.path.join("assets", "push-buttons.png")).convert_alpha()
 
