@@ -4,7 +4,6 @@ TODO:
   - add new game
   - add save game
   - add quit game
-- set icon (button image)
 - create a button class
 - add a way to upgrade to a square button
 - add a way to deactive a button (perhaps change alpha to indicate grayed out)
@@ -12,6 +11,7 @@ TODO:
 
 import pygame
 import sys
+import os
 
 GAME_NAME = "Button Burst"
 WIDTH, HEIGHT = 600, 800
@@ -26,22 +26,17 @@ def main():
   pygame.init()
   screen = pygame.display.set_mode((WIDTH, HEIGHT))
   pygame.display.set_caption(GAME_NAME)
-  # TODO: pygame.display.set_icon()
-  clock = pygame.time.Clock()
 
   font = pygame.font.SysFont("Arial", 36)
-  btn_up_sound = pygame.mixer.Sound("assets/button-click-up.ogg")
-  btn_down_sound = pygame.mixer.Sound("assets/button-click-down.ogg")
-
-  background_color = (239, 243, 228)
+  btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
+  btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
 
 
-
-  buch_art_golden_ui = pygame.image.load("assets/buch-ui.png").convert_alpha()
-  left_guage = buch_art_golden_ui.subsurface(pygame.Rect(11, 18, 92, 64))
+  buch_ui = pygame.image.load(os.path.join("assets","buch-ui.png")).convert_alpha()
+  left_guage = buch_ui.subsurface(pygame.Rect(11, 18, 92, 64))
   left_guage_dest_rect = left_guage.get_rect(center=(WIDTH//2 - 100, HEIGHT//2 - 100))
 
-  sprite_sheet = pygame.image.load("assets/push-buttons.png").convert_alpha()
+  sprite_sheet = pygame.image.load(os.path.join("assets", "push-buttons.png")).convert_alpha()
 
   red_round_btn_up_rect = pygame.Rect(332,  71, 118, 89)
   red_round_btn_down_rect = pygame.Rect(469, 71, 118, 89)
@@ -61,6 +56,9 @@ def main():
   green_btn_rect = green_btn_up.get_rect(center=(WIDTH//2, HEIGHT//2 + 100))
   blue_btn_rect = blue_btn_up.get_rect(center=(WIDTH//2, HEIGHT//2 + 200))
 
+  pygame.display.set_icon(pygame.transform.scale(red_btn_up, (32, 32)))
+
+  clock = pygame.time.Clock()
   running = True
   isButtonDown = False
   downButtonColor: str | None = None # green, red, blue, or None
@@ -95,7 +93,7 @@ def main():
               score += 100
 
     # clear background
-    screen.fill(background_color)
+    screen.fill((239, 243, 228))
 
     # guage
     screen.blit(left_guage, left_guage_dest_rect)
