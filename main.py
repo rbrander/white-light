@@ -12,6 +12,7 @@ TODO:
 import pygame
 import sys
 import os
+from guage import Guage
 
 GAME_NAME = "Button Burst"
 WIDTH, HEIGHT = 600, 800
@@ -39,6 +40,7 @@ def main():
   left_guage = pygame.transform.scale(left_guage_raw, (left_guage_raw_dest_rect.width * GUAGE_SIZE_MULTIPLIER, left_guage_raw_dest_rect.height * GUAGE_SIZE_MULTIPLIER))
   left_guage_dest_rect = left_guage.get_rect(center=(WIDTH//2 - 100*GUAGE_SIZE_MULTIPLIER, HEIGHT//2 - 100*GUAGE_SIZE_MULTIPLIER))
 
+  guage = Guage(5, 3.5)
 
   sprite_sheet = pygame.image.load(os.path.join("assets", "push-buttons.png")).convert_alpha()
 
@@ -97,10 +99,17 @@ def main():
               score += 100
 
     # clear background
-    screen.fill((239, 243, 228))
+    #screen.fill((239, 243, 228))
+    screen.fill((60, 60, 60))
 
     # guage
-    screen.blit(left_guage, left_guage_dest_rect)
+    bars = guage.num_bars
+    rgb = ((score//2) if score < 10 else bars, (score // 20) if score < 100 else bars, (score // 200) if score < 1000 else bars)
+    #min(score, guage.num_bars),
+    #(min(score, 100) // (100 / guage.num_bars)) % guage.num_bars,
+    #min(score, 1000) % guage.num_bars
+
+    guage.draw(screen, (WIDTH-guage.get_width())//2, 100, rgb)
 
     # red button
     img = red_btn_down if isButtonDown and downButtonColor == 'red' else red_btn_up
