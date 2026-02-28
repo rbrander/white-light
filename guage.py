@@ -1,5 +1,7 @@
 import pygame
 import os
+from utils import get_scaled_surface
+
 
 GUAGE_SIZE_MULTIPLIER = 2
 
@@ -16,9 +18,6 @@ class Size:
 
   def get_height(self, multiplier = 1):
     return self.height * multiplier
-
-def get_scaled_surface(surface:pygame.Surface, rect:pygame.Rect, multiplier:int):
-  return pygame.transform.scale(surface.subsurface(rect),(rect.width*multiplier, rect.height*multiplier))
 
 class Guage:
   def __init__(self, num_bars, multiplier = GUAGE_SIZE_MULTIPLIER):
