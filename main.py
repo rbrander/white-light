@@ -9,7 +9,6 @@ TODO:
   - fade to white
   - go back to menu
 - add a way to upgrade buttons (so they contribute more)
-- add custom pixel font
 """
 
 import pygame
@@ -31,7 +30,7 @@ def main():
   screen = pygame.display.set_mode((WIDTH, HEIGHT))
   pygame.display.set_caption(GAME_NAME)
 
-  font = pygame.font.SysFont(None, 42)
+  font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
   btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
   btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
 
