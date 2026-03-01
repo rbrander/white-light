@@ -18,20 +18,18 @@ import sys
 import os
 from guage import Guage
 from utils import get_scaled_surface
+from text import DisappearingText
 
 GAME_NAME = "Button Burst"
 WIDTH, HEIGHT = 600, 800
 FPS = 60
-
-# green, red
-# blue, white
 
 def main():
   pygame.init()
   screen = pygame.display.set_mode((WIDTH, HEIGHT))
   pygame.display.set_caption(GAME_NAME)
 
-  font = pygame.font.SysFont(None, 36)
+  font = pygame.font.SysFont(None, 42)
   btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
   btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
 
@@ -67,6 +65,7 @@ def main():
 
   pygame.display.set_icon(pygame.transform.smoothscale(red_btn_up, (32, 32)))
 
+  dt = 0
   clock = pygame.time.Clock()
   running = True
   isButtonDown = False
@@ -75,7 +74,9 @@ def main():
   blue_count = 0
   threshold = 10
   downButtonColor: str | None = None # green, red, blue, or None
+  disappearing_text = DisappearingText()
   while running:
+    # update
     isGreenButtonActive = red_count >= threshold
     isBlueButtonActive = green_count >= threshold
     for event in pygame.event.get():
@@ -97,6 +98,7 @@ def main():
               isButtonDown = True
               btn_down_sound.play()
               red_count = min(red_count + 1, 100)
+              disappearing_text.add("+1", event.pos)
               if isGreenButtonActive == False and red_count >= threshold:
                 btn_up_sound.play() # to indicate green button now active
             elif isGreenButtonActive and green_btn_rect.collidepoint(event.pos):
@@ -104,13 +106,16 @@ def main():
               isButtonDown = True
               btn_down_sound.play()
               green_count = min(green_count + 1, 100)
+              disappearing_text.add("+1", event.pos)
               if isBlueButtonActive == False and green_count >= threshold:
                 btn_up_sound.play() # to indicate blue button now active
             elif isBlueButtonActive and blue_btn_rect.collidepoint(event.pos):
               downButtonColor = 'blue'
               isButtonDown = True
               btn_down_sound.play()
+              disappearing_text.add("+1", event.pos)
               blue_count = min(blue_count + 1, 100)
+    disappearing_text.update(dt)
 
     # clear background
     #screen.fill((239, 243, 228))
@@ -143,8 +148,10 @@ def main():
     circle_color = ((red_count / 100) * 255, (green_count / 100) * 255, (blue_count / 100) * 255)
     pygame.draw.circle(screen, circle_color, (138, 210), 60)
 
+    disappearing_text.draw(screen, font, pygame.color.Color(239, 243, 228))
+
     pygame.display.flip()
-    clock.tick(FPS)
+    dt = clock.tick(FPS)
 
   pygame.quit()
   sys.exit()
