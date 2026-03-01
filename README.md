@@ -8,3 +8,5 @@ A clicker game where you press buttons to build up energy bursts to create white
 - [Buch's Golden UI](https://opengameart.org/content/golden-ui-bigger-than-ever-edition)
 - [fonts by Kenney Vleugels (www.kenney.nl)](https://www.kenney.nl)
 - [Kenney Fonts Open Game Art Page](https://opengameart.org/content/kenney-fonts)
+- [Button push 2.wav by xtrgamr](https://freesound.org/s/257762)
+- [Soft Dreamy Beep (Alternative Version) by CogFireStudios](https://freesound.org/s/531509)

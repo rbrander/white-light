@@ -10,11 +10,22 @@ from text import DisappearingText
 TODO:
 - add menu
   - add new game
+    - fade from white
   - add save game
+  - add continue / load game
+  - add options (ie. volume)
   - add quit game
+- add pygame.mixer.Channel for managing multiple sounds and volume
+- upgrade buttons
+  - add cost (display on button and deduct on upgrade)
+  - add inactive state (not enough cost)
+  - add color ball (right side)?
+- disappearing text
+  - add icons?
 - add end game state
-  - add sound
   - fade to white
+  - add sound
+  - add message
   - go back to menu
 """
 
@@ -33,6 +44,11 @@ def main():
   btn_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 22)
   btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
   btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
+  upgrade_button_sound = pygame.mixer.Sound(os.path.join("assets", "soft-chime.ogg"))
+  volume = 0.1
+  btn_up_sound.set_volume(volume)
+  btn_down_sound.set_volume(volume)
+  upgrade_button_sound.set_volume(volume)
 
   guage = Guage(5, 3.5)
 
@@ -88,17 +104,23 @@ def main():
     def on_btn_up():
       btn_up_sound.play()
 
-    def on_upgrade_red():
+    def on_upgrade_red(pos):
       nonlocal red_increment
       red_increment += 1
+      disappearing_text.add(f"* {red_increment} *", pos)
+      upgrade_button_sound.play()
 
-    def on_upgrade_green():
+    def on_upgrade_green(pos):
       nonlocal green_increment
       green_increment += 1
+      disappearing_text.add(f"* {green_increment} *", pos)
+      upgrade_button_sound.play()
 
-    def on_upgrade_blue():
+    def on_upgrade_blue(pos):
       nonlocal blue_increment
       blue_increment += 1
+      disappearing_text.add(f"* {blue_increment} *", pos)
+      upgrade_button_sound.play()
 
     for event in pygame.event.get():
       match event.type:
@@ -110,13 +132,13 @@ def main():
             running = False
             break
       red_btn.handle_event(event, on_down=lambda: on_red_down(event.pos), on_up=on_btn_up)
-      red_upgrade_btn.handle_event(event, on_up=on_upgrade_red)
+      red_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_red(event.pos))
       if isGreenButtonActive:
         green_btn.handle_event(event, on_down=lambda: on_green_down(event.pos), on_up=on_btn_up)
-        green_upgrade_btn.handle_event(event, on_up=on_upgrade_green)
+        green_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_green(event.pos))
       if isBlueButtonActive:
         blue_btn.handle_event(event, on_down=lambda: on_blue_down(event.pos), on_up=on_btn_up)
-        blue_upgrade_btn.handle_event(event, on_up=on_upgrade_blue)
+        blue_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_blue(event.pos))
 
     disappearing_text.update(dt)
 
