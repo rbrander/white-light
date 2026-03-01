@@ -23,6 +23,8 @@ from text import DisappearingText
 GAME_NAME = "Button Burst"
 WIDTH, HEIGHT = 600, 800
 FPS = 60
+LIGHT_COLOR = pygame.color.Color(239, 243, 228)
+DARK_COLOR = pygame.color.Color(60, 60, 60)
 
 def main():
   pygame.init()
@@ -118,9 +120,9 @@ def main():
     disappearing_text.update(dt)
 
     # clear background
-    #screen.fill((239, 243, 228))
-    screen.fill((60, 60, 60))
-    #pygame.draw.rect(screen, (239, 243, 228), pygame.Rect(0, HEIGHT//2, WIDTH, HEIGHT//2))
+    #screen.fill(LIGHT_COLOR)
+    screen.fill(DARK_COLOR)
+    #pygame.draw.rect(screen, LIGHT_COLOR, pygame.Rect(0, HEIGHT//2, WIDTH, HEIGHT//2))
 
     # guage
     rgb = (red_count // 20, green_count // 20, blue_count // 20)
@@ -141,14 +143,14 @@ def main():
     # score text
     # Brightness/luminance (perceived lightness) -- Human eye is more sensitive to green, then red, then blue.
     brightness = (0.2126*red_count + 0.7152*green_count + 0.0722*blue_count) / 255
-    text_surface = font.render(f"{brightness * 100:.1f}% Done ({red_count}%, {green_count}%, {blue_count}%)", True, (239, 243, 228)) #(0, 0, 0))
-    screen.blit(text_surface, (10, 10))
+    text_surface = font.render(f"{brightness * 100:.1f}% Done ({red_count}%, {green_count}%, {blue_count}%)", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, 50)))
 
     # color circle
     circle_color = ((red_count / 100) * 255, (green_count / 100) * 255, (blue_count / 100) * 255)
     pygame.draw.circle(screen, circle_color, (138, 210), 60)
 
-    disappearing_text.draw(screen, font, pygame.color.Color(239, 243, 228))
+    disappearing_text.draw(screen, font, LIGHT_COLOR)
 
     pygame.display.flip()
     dt = clock.tick(FPS)
