@@ -1,0 +1,6 @@
+[project]
+name = "white-light"
+version = "0.1.0"
+dependencies = [
+  "pygame>=2.6.1"
+]
