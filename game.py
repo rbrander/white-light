@@ -3,7 +3,7 @@ import os
 from buttons import Buttons
 from guage import Guage
 from text import DisappearingText
-from constants import WIDTH,HEIGHT,FPS,LIGHT_COLOR,DARK_COLOR
+from constants import BLACK, WIDTH,HEIGHT,FPS,LIGHT_COLOR,DARK_COLOR
 from utils import exit_program
 
 
@@ -27,7 +27,8 @@ TODO:
 """
 
 def game(screen: pygame.Surface):
-  font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
+  heading_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 64)
+  regular_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
   btn_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 22)
   btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
   btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
@@ -154,9 +155,10 @@ def game(screen: pygame.Surface):
 
     # score text
     # Brightness/luminance (perceived lightness) -- Human eye is more sensitive to green, then red, then blue.
-    brightness = (0.2126*red_count + 0.7152*green_count + 0.0722*blue_count) / 255
-    text_surface = font.render(f"{brightness * 100:.1f}% Done ({red_count}%, {green_count}%, {blue_count}%)", True, LIGHT_COLOR)
-    text_shadow = font.render(f"{brightness * 100:.1f}% Done ({red_count}%, {green_count}%, {blue_count}%)", True, (0, 0, 0))
+    brightness = (0.2126*red_count + 0.7152*green_count + 0.0722*blue_count)
+    heading = f"{brightness:.1f}%"
+    text_surface = heading_font.render(heading, True, LIGHT_COLOR)
+    text_shadow = heading_font.render(heading, True, BLACK)
     shadow_offset = 3
     screen.blit(text_shadow, text_shadow.get_rect(center=(WIDTH//2+shadow_offset, 50+shadow_offset)))
     screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, 50)))
@@ -165,7 +167,7 @@ def game(screen: pygame.Surface):
     circle_color = ((red_count / 100) * 255, (green_count / 100) * 255, (blue_count / 100) * 255)
     pygame.draw.circle(screen, circle_color, (138, 210), 60)
 
-    disappearing_text.draw(screen, font, LIGHT_COLOR)
+    disappearing_text.draw(screen, regular_font, LIGHT_COLOR)
 
     pygame.display.flip()
     dt = clock.tick(FPS)
