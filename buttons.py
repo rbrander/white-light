@@ -1,5 +1,6 @@
 import pygame
 import os
+from constants import LIGHT_COLOR, WIDTH
 from utils import get_scaled_surface
 from typing import Literal
 
@@ -100,6 +101,24 @@ class ButtonBase:
           self.is_pressed = True
           if on_down != None:
             on_down()
+
+class MenuButton(ButtonBase):
+  def __init__(self, text: str, font: pygame.font.Font, y_offset: int):
+    padding = WIDTH // 5 # 20% width
+    position = (padding // 2, y_offset)
+    size = (WIDTH - padding, 75)
+    super().__init__(position, size)
+    self.text = text
+    # create surfaces ahead for faster render
+    self.button_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+    pygame.draw.rect(self.button_surface, (255, 255, 255, 76), self.button_surface.get_rect(), border_radius=40)
+    self.text_surface = font.render(text, True, LIGHT_COLOR)
+
+  def draw(self, surface: pygame.Surface):
+    surface.blit(self.button_surface, self.rect.topleft)
+    text_x = self.rect.x + (self.rect.width - self.text_surface.get_width()) // 2
+    text_y = self.rect.y + (self.rect.height - self.text_surface.get_height()) // 2
+    surface.blit(self.text_surface, (text_x, text_y))
 
 
 class RGBButton(ButtonBase):
