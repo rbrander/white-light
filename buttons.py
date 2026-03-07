@@ -87,19 +87,31 @@ BUCH_BUTTON_RECTS = { # Rectangles for each button found on buch-buttons sprite 
 class ButtonBase:
   def __init__(self, position: tuple[int, int], size: tuple[int, int]):
     self.is_pressed: bool = False
+    self.is_active: bool = True
     self.rect = pygame.Rect(position, size)
 
+  def activate(self):
+    self.is_pressed = False
+    self.is_active = True
+
+  def deactive(self):
+    self.is_pressed = True
+    self.is_active = False
+
   def handle_event(self, event: pygame.event.Event, on_down: function | None = None, on_up: function | None = None):
+    if not self.is_active:
+      return
+
     match event.type:
       case pygame.MOUSEBUTTONUP:
         if event.button == 1 and self.rect.collidepoint(event.pos):
           self.is_pressed = False
-          if on_up != None:
+          if on_up is not None:
             on_up()
       case pygame.MOUSEBUTTONDOWN:
         if event.button == 1 and self.rect.collidepoint(event.pos):
           self.is_pressed = True
-          if on_down != None:
+          if on_down is not None:
             on_down()
 
 class MenuButton(ButtonBase):
@@ -134,7 +146,7 @@ class RGBButton(ButtonBase):
     surface.blit(img, self.rect.topleft)
 
 class BuchButton(ButtonBase):
-  def __init__(self, sprite_sheet: pygame.Surface, position: tuple[int, int], color: ButtonColor | None = None):
+  def __init__(self, sprite_sheet: pygame.Surface, position: tuple[int, int], color: ButtonColor | None = None, label: str | None = None):
     self.color = color
     self.position = position
     self.left_up = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["left"]["up"], BUCH_BTN_SCALE)
@@ -142,12 +154,13 @@ class BuchButton(ButtonBase):
     self.middle_up = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["middle"]["up"], BUCH_BTN_SCALE)
     self.middle_down = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["middle"]["down"], BUCH_BTN_SCALE)
     # TODO: build right using color; if color is none use "right" otherwise use "right_with_ring" overlaying color-ed ball
-    self.right_up = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["right" if color == None else "right_with_ring"]["up"], BUCH_BTN_SCALE)
-    self.right_down = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["right" if color == None else "right_with_ring"]["down"], BUCH_BTN_SCALE)
+    self.right_up = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["right" if color is None else "right_with_ring"]["up"], BUCH_BTN_SCALE)
+    self.right_down = get_scaled_surface(sprite_sheet, BUCH_BUTTON_RECTS["right" if color is None else "right_with_ring"]["down"], BUCH_BTN_SCALE)
+    self.label = label
     size = (self.left_up.get_width()+self.middle_up.get_width()+self.right_up.get_width(), self.middle_up.get_height())
     super().__init__(position, size)
 
-  def draw(self, surface: pygame.Surface, font: pygame.font.Font | None = None, text: str = ""):
+  def draw(self, surface: pygame.Surface, font: pygame.font.Font | None = None, label_override: str | None = None):
     # draw left
     surface.blit(self.left_down if self.is_pressed else self.left_up, self.position)
     # draw middle
@@ -155,7 +168,8 @@ class BuchButton(ButtonBase):
     # draw right
     surface.blit(self.right_down if self.is_pressed else self.right_up, (self.position[0] + self.left_up.get_width() + self.middle_up.get_width(), self.position[1]))
     # draw text
-    if font != None and text != "":
+    text = label_override if label_override is not None else self.label
+    if font is not None and text is not None and text != "":
       text_surface = font.render(text, True, (0,0,0)).convert_alpha()
       surface.blit(text_surface, text_surface.get_rect(topleft=(self.position[0] + 24, self.position[1] + 9)))
 
@@ -167,5 +181,5 @@ class Buttons:
   def create_rgb(self, color: ButtonColor, type: ButtonType, position: tuple[int, int]):
     return RGBButton(self.rgb_sprite_sheet, color, type, position)
 
-  def create_buch(self, position: tuple[int, int], color: ButtonColor | None = None):
-    return BuchButton(self.buch_buttons_sprite_sheet, position, color)
+  def create_buch(self, position: tuple[int, int], color: ButtonColor | None = None, label: str | None = None):
+    return BuchButton(self.buch_buttons_sprite_sheet, position, color, label)
