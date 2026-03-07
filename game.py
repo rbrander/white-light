@@ -2,9 +2,9 @@ import pygame
 import os
 from buttons import Buttons
 from guage import Guage
-from text import DisappearingText
+from text import DisappearingText, draw_text_shadow
 from constants import BLACK, WIDTH,HEIGHT,FPS,LIGHT_COLOR,DARK_COLOR
-from utils import exit_program
+from utils import draw_grid_overlay, exit_program, format_time
 
 
 """
@@ -26,10 +26,87 @@ TODO:
   - go back to menu
 """
 
+def game_over_screen(screen: pygame.Surface, play_time_in_ms: int):
+  background = screen.copy() # snapshot of the game state at end-of-game
+
+  large_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenvector_future.ttf"), 64)
+  medium_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel.ttf"), 48)
+  small_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel.ttf"), 24)
+
+  clock = pygame.time.Clock()
+  alpha = 0
+  running = True
+  while running:
+    alpha = min(alpha + 3, 255)
+    running = alpha < 255
+
+    # listen for events to exit
+    for event in pygame.event.get():
+      match event.type:
+        case pygame.QUIT:
+          exit_program()
+        case pygame.KEYDOWN:
+          if event.key == pygame.K_ESCAPE:
+            running = False
+            break
+
+    # draw background and white transparent overlay
+    screen.blit(background, (0, 0))
+    white_surface = pygame.Surface(background.get_size(), pygame.SRCALPHA)
+    pygame.draw.rect(white_surface, (255, 255, 255, alpha), white_surface.get_rect())
+    screen.blit(white_surface, (0, 0))
+
+    pygame.display.flip()
+    clock.tick(FPS)
+
+  # if the alpha is at the max, we can assume the user waited for the animation to finish, otherwise they bailed
+  if alpha == 255:
+    # draw a grey rectangle
+    grey_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+    padding = 40
+    pygame.draw.rect(grey_surface, (DARK_COLOR.r, DARK_COLOR.g, DARK_COLOR.b, 128), (padding, padding, WIDTH-padding*2, HEIGHT-padding*2), border_radius = padding)
+    screen.blit(grey_surface, (0, 0))
+
+    # display text and wait for input to proceed
+    heading = "You did it!"
+    draw_text_shadow(screen, large_font, heading, (WIDTH//2, 150))
+
+    subheading = "You created white light in"
+    text_surface = small_font.render(subheading, True, BLACK)
+    screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, 300)))
+
+    y_offset = 400
+    y_offset_increment = 75
+    time_strings = format_time(play_time_in_ms)
+    for time_part in time_strings:
+      text_surface = medium_font.render(time_part, True, BLACK)
+      screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, y_offset)))
+      y_offset += y_offset_increment
+
+    text_surface = small_font.render("Press a key or Click to exit", True, BLACK)
+    screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, 725)))
+
+    pygame.display.flip()
+
+    running = True
+    while running:
+      # listen for events to exit
+      for event in pygame.event.get():
+        match event.type:
+          case pygame.QUIT:
+            exit_program()
+          case pygame.KEYDOWN:
+            pass
+          case pygame.MOUSEBUTTONDOWN:
+            running = False
+            break
+      clock.tick(FPS)
+
+
 def game(screen: pygame.Surface):
-  heading_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 64)
-  regular_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
-  btn_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 22)
+  large_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_high.ttf"), 64)
+  medium_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_high.ttf"), 48)
+  small_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 22)
 
   btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
   btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
@@ -52,6 +129,7 @@ def game(screen: pygame.Surface):
 
   dt = 0
   clock = pygame.time.Clock()
+  start_time = pygame.time.get_ticks()
   running = True
   red_increment = 1
   green_increment = 1
@@ -64,8 +142,14 @@ def game(screen: pygame.Surface):
   green_upgrade_cost = 10
   blue_upgrade_cost = 10
   disappearing_text = DisappearingText()
-
   while running:
+    # exit check
+    is_game_over = red_count >= 100 and green_count >= 100 and blue_count >= 100
+    if is_game_over:
+      game_over_screen(screen, pygame.time.get_ticks() - start_time)
+      running = False
+      break
+
     # update
     isRedUpgradeButtonActive = red_count >= red_upgrade_cost
     isGreenUpgradeButtonActive = green_count >= green_upgrade_cost
@@ -118,7 +202,7 @@ def game(screen: pygame.Surface):
 
     def on_upgrade_red(pos):
       nonlocal red_increment, red_count, red_upgrade_cost
-      red_increment += 1
+      red_increment += 2
       disappearing_text.add(f"* {red_increment} *", pos)
       upgrade_button_sound.play()
       red_count = max(0, red_count - red_upgrade_cost)
@@ -126,7 +210,7 @@ def game(screen: pygame.Surface):
 
     def on_upgrade_green(pos):
       nonlocal green_increment, green_count, green_upgrade_cost
-      green_increment += 1
+      green_increment += 2
       disappearing_text.add(f"* {green_increment} *", pos)
       upgrade_button_sound.play()
       green_count = max(0, green_count - green_upgrade_cost)
@@ -134,7 +218,7 @@ def game(screen: pygame.Surface):
 
     def on_upgrade_blue(pos):
       nonlocal blue_increment, blue_count, blue_upgrade_cost
-      blue_increment += 1
+      blue_increment += 2
       disappearing_text.add(f"* {blue_increment} *", pos)
       upgrade_button_sound.play()
       blue_count = max(0, blue_count - blue_upgrade_cost)
@@ -166,41 +250,41 @@ def game(screen: pygame.Surface):
 
     # red button
     red_btn.draw(screen)
-    red_upgrade_btn.draw(screen, btn_font)
+    red_upgrade_btn.draw(screen, small_font)
     # percent complete
-    text_surface = regular_font.render(f"{red_count}%", True, LIGHT_COLOR)
+    text_surface = medium_font.render(f"{red_count}%", True, LIGHT_COLOR)
     screen.blit(text_surface, text_surface.get_rect(center=(red_btn.rect.centerx, red_btn.rect.top - 30)))
     # upgrade cost text
-    text_surface = btn_font.render(f"cost {red_upgrade_cost}", True, LIGHT_COLOR)
+    text_surface = small_font.render(f"cost {red_upgrade_cost}", True, LIGHT_COLOR)
     screen.blit(text_surface, text_surface.get_rect(center=(red_upgrade_btn.rect.centerx, red_upgrade_btn.rect.bottom + 20)))
 
     # green button
     green_btn.draw(screen)
-    green_upgrade_btn.draw(screen, btn_font)
+    green_upgrade_btn.draw(screen, small_font)
     # percent complete
-    text_surface = regular_font.render(f"{green_count}%", True, LIGHT_COLOR)
+    text_surface = medium_font.render(f"{green_count}%", True, LIGHT_COLOR)
     screen.blit(text_surface, text_surface.get_rect(center=(green_btn.rect.centerx, green_btn.rect.top - 30)))
     # upgrade cost text
-    text_surface = btn_font.render(f"cost {green_upgrade_cost}", True, LIGHT_COLOR)
+    text_surface = small_font.render(f"cost {green_upgrade_cost}", True, LIGHT_COLOR)
     screen.blit(text_surface, text_surface.get_rect(center=(green_upgrade_btn.rect.centerx, green_upgrade_btn.rect.bottom + 20)))
 
     # blue button
     blue_btn.draw(screen)
-    blue_upgrade_btn.draw(screen, btn_font)
+    blue_upgrade_btn.draw(screen, small_font)
     # percent complete
-    text_surface = regular_font.render(f"{blue_count}%", True, LIGHT_COLOR)
+    text_surface = medium_font.render(f"{blue_count}%", True, LIGHT_COLOR)
     screen.blit(text_surface, text_surface.get_rect(center=(blue_btn.rect.centerx, blue_btn.rect.top - 30)))
     # upgrade cost text
-    text_surface = btn_font.render(f"cost {blue_upgrade_cost}", True, LIGHT_COLOR)
+    text_surface = small_font.render(f"cost {blue_upgrade_cost}", True, LIGHT_COLOR)
     screen.blit(text_surface, text_surface.get_rect(center=(blue_upgrade_btn.rect.centerx, blue_upgrade_btn.rect.bottom + 20)))
 
 
     # score text
     # Brightness/luminance (perceived lightness) -- Human eye is more sensitive to green, then red, then blue.
     brightness = (0.2126*red_count + 0.7152*green_count + 0.0722*blue_count)
-    heading = f"{brightness:.1f}%"
-    text_surface = heading_font.render(heading, True, LIGHT_COLOR)
-    text_shadow = heading_font.render(heading, True, BLACK)
+    heading = f"{brightness:.1f} %"
+    text_surface = large_font.render(heading, True, LIGHT_COLOR)
+    text_shadow = large_font.render(heading, True, BLACK)
     shadow_offset = 3
     screen.blit(text_shadow, text_shadow.get_rect(center=(WIDTH//2+shadow_offset, 50+shadow_offset)))
     screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, 50)))
@@ -209,7 +293,7 @@ def game(screen: pygame.Surface):
     circle_color = ((red_count / 100) * 255, (green_count / 100) * 255, (blue_count / 100) * 255)
     pygame.draw.circle(screen, circle_color, (138, 210), 60)
 
-    disappearing_text.draw(screen, regular_font, LIGHT_COLOR)
+    disappearing_text.draw(screen, medium_font, LIGHT_COLOR)
 
     pygame.display.flip()
     dt = clock.tick(FPS)
