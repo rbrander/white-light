@@ -30,6 +30,7 @@ def game(screen: pygame.Surface):
   heading_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 64)
   regular_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
   btn_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 22)
+
   btn_up_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-up.ogg"))
   btn_down_sound = pygame.mixer.Sound(os.path.join("assets", "button-click-down.ogg"))
   upgrade_button_sound = pygame.mixer.Sound(os.path.join("assets", "soft-chime.ogg"))
@@ -42,12 +43,12 @@ def game(screen: pygame.Surface):
 
   buttons = Buttons()
   red_btn = buttons.create_rgb("red", "square", (50, HEIGHT//2 + 50))
-  red_upgrade_btn = buttons.create_buch((50, HEIGHT//2 + 200))
+  red_upgrade_btn = buttons.create_buch((50, HEIGHT//2 + 200), label = "Upgrade")
   btn_width = red_btn.rect.width # all buttons are the same size
   green_btn = buttons.create_rgb("green", "square", ((WIDTH - btn_width)//2 , HEIGHT//2 + 50))
-  green_upgrade_btn = buttons.create_buch(((WIDTH - btn_width)//2, HEIGHT//2 + 200))
+  green_upgrade_btn = buttons.create_buch(((WIDTH - btn_width)//2, HEIGHT//2 + 200), label = "Upgrade")
   blue_btn = buttons.create_rgb("blue", "square", (WIDTH - btn_width - 50, HEIGHT//2 + 50))
-  blue_upgrade_btn = buttons.create_buch((WIDTH - btn_width - 50, HEIGHT//2 + 200))
+  blue_upgrade_btn = buttons.create_buch((WIDTH - btn_width - 50, HEIGHT//2 + 200), label = "Upgrade")
 
   dt = 0
   clock = pygame.time.Clock()
@@ -55,32 +56,56 @@ def game(screen: pygame.Surface):
   red_increment = 1
   green_increment = 1
   blue_increment = 1
-  red_count = 0
-  green_count = 0
-  blue_count = 0
-  threshold = 10 # how many clicks until the next button is unlocked
+  red_count = 0 # value of 0 to 100
+  green_count = 0 # value of 0 to 100
+  blue_count = 0 # value of 0 to 100
+  upgrade_cost_increase = 1.2 # next upgrade costs 120% of current upgrade
+  red_upgrade_cost = 10 # starts wtih 10 and goes up by 20% each upgrade
+  green_upgrade_cost = 10
+  blue_upgrade_cost = 10
   disappearing_text = DisappearingText()
 
   while running:
     # update
-    isGreenButtonActive = red_count >= threshold
-    isBlueButtonActive = green_count >= threshold
+    isRedUpgradeButtonActive = red_count >= red_upgrade_cost
+    isGreenUpgradeButtonActive = green_count >= green_upgrade_cost
+    isBlueUpgradeButtonActive = blue_count >= blue_upgrade_cost
+
+    if isRedUpgradeButtonActive:
+      # make a sound if the button is being activated (from being inactive)
+      if not red_upgrade_btn.is_active:
+        btn_up_sound.play()
+      red_upgrade_btn.activate()
+    else:
+      red_upgrade_btn.deactive()
+
+    if isGreenUpgradeButtonActive:
+      # make a sound if the button is being activated (from being inactive)
+      if not green_upgrade_btn.is_active:
+        btn_up_sound.play()
+      green_upgrade_btn.activate()
+    else:
+      green_upgrade_btn.deactive()
+
+    if isBlueUpgradeButtonActive:
+      # make a sound if the button is being activated (from being inactive)
+      if not blue_upgrade_btn.is_active:
+        btn_up_sound.play()
+      blue_upgrade_btn.activate()
+    else:
+      blue_upgrade_btn.deactive()
 
     def on_red_down(pos):
       nonlocal red_count
       btn_down_sound.play()
       red_count = min(red_count + red_increment, 100)
       disappearing_text.add(f"+{red_increment}", pos)
-      if isGreenButtonActive == False and red_count >= threshold:
-        btn_up_sound.play() # to indicate green button now active
 
     def on_green_down(pos):
       nonlocal green_count
       btn_down_sound.play()
       green_count = min(green_count + green_increment, 100)
       disappearing_text.add(f"+{green_increment}", pos)
-      if isBlueButtonActive == False and green_count >= threshold:
-        btn_up_sound.play() # to indicate blue button now active
 
     def on_blue_down(pos):
       nonlocal blue_count
@@ -92,22 +117,28 @@ def game(screen: pygame.Surface):
       btn_up_sound.play()
 
     def on_upgrade_red(pos):
-      nonlocal red_increment
+      nonlocal red_increment, red_count, red_upgrade_cost
       red_increment += 1
       disappearing_text.add(f"* {red_increment} *", pos)
       upgrade_button_sound.play()
+      red_count = max(0, red_count - red_upgrade_cost)
+      red_upgrade_cost = int(red_upgrade_cost * upgrade_cost_increase)
 
     def on_upgrade_green(pos):
-      nonlocal green_increment
+      nonlocal green_increment, green_count, green_upgrade_cost
       green_increment += 1
       disappearing_text.add(f"* {green_increment} *", pos)
       upgrade_button_sound.play()
+      green_count = max(0, green_count - green_upgrade_cost)
+      green_upgrade_cost = int(green_upgrade_cost * upgrade_cost_increase)
 
     def on_upgrade_blue(pos):
-      nonlocal blue_increment
+      nonlocal blue_increment, blue_count, blue_upgrade_cost
       blue_increment += 1
       disappearing_text.add(f"* {blue_increment} *", pos)
       upgrade_button_sound.play()
+      blue_count = max(0, blue_count - blue_upgrade_cost)
+      blue_upgrade_cost = int(blue_upgrade_cost * upgrade_cost_increase)
 
     for event in pygame.event.get():
       match event.type:
@@ -119,12 +150,10 @@ def game(screen: pygame.Surface):
             break
       red_btn.handle_event(event, on_down=lambda: on_red_down(event.pos), on_up=on_btn_up)
       red_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_red(event.pos))
-      if isGreenButtonActive:
-        green_btn.handle_event(event, on_down=lambda: on_green_down(event.pos), on_up=on_btn_up)
-        green_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_green(event.pos))
-      if isBlueButtonActive:
-        blue_btn.handle_event(event, on_down=lambda: on_blue_down(event.pos), on_up=on_btn_up)
-        blue_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_blue(event.pos))
+      green_btn.handle_event(event, on_down=lambda: on_green_down(event.pos), on_up=on_btn_up)
+      green_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_green(event.pos))
+      blue_btn.handle_event(event, on_down=lambda: on_blue_down(event.pos), on_up=on_btn_up)
+      blue_upgrade_btn.handle_event(event, on_up=lambda: on_upgrade_blue(event.pos))
 
     disappearing_text.update(dt)
 
@@ -137,21 +166,34 @@ def game(screen: pygame.Surface):
 
     # red button
     red_btn.draw(screen)
-    red_upgrade_btn.draw(screen, btn_font, "Upgrade")
+    red_upgrade_btn.draw(screen, btn_font)
+    # percent complete
+    text_surface = regular_font.render(f"{red_count}%", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(red_btn.rect.centerx, red_btn.rect.top - 30)))
+    # upgrade cost text
+    text_surface = btn_font.render(f"cost {red_upgrade_cost}", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(red_upgrade_btn.rect.centerx, red_upgrade_btn.rect.bottom + 20)))
 
     # green button
-    if isGreenButtonActive:
-      green_btn.draw(screen)
-      green_upgrade_btn.draw(screen, btn_font, "Upgrade")
-    else:
-      screen.blit(green_btn.btn_down, green_btn.rect.topleft)
+    green_btn.draw(screen)
+    green_upgrade_btn.draw(screen, btn_font)
+    # percent complete
+    text_surface = regular_font.render(f"{green_count}%", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(green_btn.rect.centerx, green_btn.rect.top - 30)))
+    # upgrade cost text
+    text_surface = btn_font.render(f"cost {green_upgrade_cost}", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(green_upgrade_btn.rect.centerx, green_upgrade_btn.rect.bottom + 20)))
 
     # blue button
-    if isBlueButtonActive:
-      blue_btn.draw(screen)
-      blue_upgrade_btn.draw(screen, btn_font, "Upgrade")
-    else:
-      screen.blit(blue_btn.btn_down, blue_btn.rect.topleft)
+    blue_btn.draw(screen)
+    blue_upgrade_btn.draw(screen, btn_font)
+    # percent complete
+    text_surface = regular_font.render(f"{blue_count}%", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(blue_btn.rect.centerx, blue_btn.rect.top - 30)))
+    # upgrade cost text
+    text_surface = btn_font.render(f"cost {blue_upgrade_cost}", True, LIGHT_COLOR)
+    screen.blit(text_surface, text_surface.get_rect(center=(blue_upgrade_btn.rect.centerx, blue_upgrade_btn.rect.bottom + 20)))
+
 
     # score text
     # Brightness/luminance (perceived lightness) -- Human eye is more sensitive to green, then red, then blue.
