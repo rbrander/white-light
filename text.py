@@ -1,5 +1,13 @@
 import pygame
 
+from constants import BLACK, LIGHT_COLOR
+
+def draw_text_shadow(surface: pygame.Surface, font: pygame.font.Font, text: str, center: tuple[int, int], shadow_offset: int = 3):
+  text_surface = font.render(text, True, LIGHT_COLOR)
+  text_shadow = font.render(text, True, BLACK)
+  surface.blit(text_shadow, text_shadow.get_rect(center=(center[0]+shadow_offset, center[1]+shadow_offset)))
+  surface.blit(text_surface, text_surface.get_rect(center=center))
+
 class TextNode:
   def __init__(self, text, x, y, duration_ms = 1000, speed = 0.25):
     self.text = text
