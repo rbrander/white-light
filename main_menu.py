@@ -11,8 +11,6 @@ TODO:
   - add hover state
   - add selected state
   - add keyboard navigation?
-  - add save game
-  - add continue / load game
   - add options (ie. volume)
 """
 
@@ -39,22 +37,19 @@ def draw_background(screen: pygame.Surface):
 
 
 def main_menu(screen: pygame.Surface):
-  font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
+  large_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenvector_future_thin.ttf"), 64)
+  medium_font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenvector_future_thin.ttf"), 42)
 
-  new_game_btn = MenuButton("New Game", font, 300)
-  exit_btn = MenuButton("Exit", font, 600)
+  new_game_btn = MenuButton("New  Game", medium_font, 300)
+  exit_btn = MenuButton("Exit", medium_font, 450)
   menu_buttons:list[MenuButton] = [
     new_game_btn,
-    #MenuButton("Save Game", font),
-    #MenuButton("Continue Game", font),
-    #MenuButton("Options", font),
     exit_btn,
   ]
 
   def new_game():
     game(screen)
 
-  dt = 0
   clock = pygame.time.Clock()
   running = True
   while running:
@@ -70,22 +65,16 @@ def main_menu(screen: pygame.Surface):
       new_game_btn.handle_event(event, on_down=new_game)
       exit_btn.handle_event(event, on_down=exit_program)
 
-    # update
-
-    # draw
     # clear background
     draw_background(screen)
+
+    # title
+    title = large_font.render(GAME_NAME, True, LIGHT_COLOR)
+    screen.blit(title, title.get_rect(center=(WIDTH//2, 150)))
 
     # menu buttons
     for menu_button in menu_buttons:
       menu_button.draw(screen)
 
-    # title
-    title = font.render(GAME_NAME, True, LIGHT_COLOR)
-    screen.blit(title, title.get_rect(center=(WIDTH//2, 50)))
-
-    # Grid overlay
-    # draw_grid_overlay(screen)
-
     pygame.display.flip()
-    dt = clock.tick(FPS)
+    clock.tick(FPS)

@@ -1,6 +1,6 @@
 import pygame
 
-GAME_NAME = "White Light"
+GAME_NAME = "White  Light"
 WIDTH, HEIGHT = 600, 800
 FPS = 60
 

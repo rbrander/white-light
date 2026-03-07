@@ -11,19 +11,10 @@ from utils import draw_grid_overlay, exit_program, format_time
 TODO:
 - add pygame.mixer.Channel for managing multiple sounds and volume
 - upgrade buttons
-  - add cost (display on button and deduct on upgrade)
-  - add inactive state (not enough cost)
-  - add color ball (right side)?
-- disappearing text
-  - add icons?
-- escape menu
-  - transparent overlay to prevent clicking through
-  - show a menu of options: resume, save, exit to menu, exit
-- add end game state
-  - fade to white
   - add sound
-  - add message
-  - go back to menu
+- if escape pressed, allow continue from main screen
+- end game state
+  - add sound/music
 """
 
 def game_over_screen(screen: pygame.Surface, play_time_in_ms: int):
@@ -283,11 +274,7 @@ def game(screen: pygame.Surface):
     # Brightness/luminance (perceived lightness) -- Human eye is more sensitive to green, then red, then blue.
     brightness = (0.2126*red_count + 0.7152*green_count + 0.0722*blue_count)
     heading = f"{brightness:.1f} %"
-    text_surface = large_font.render(heading, True, LIGHT_COLOR)
-    text_shadow = large_font.render(heading, True, BLACK)
-    shadow_offset = 3
-    screen.blit(text_shadow, text_shadow.get_rect(center=(WIDTH//2+shadow_offset, 50+shadow_offset)))
-    screen.blit(text_surface, text_surface.get_rect(center=(WIDTH//2, 50)))
+    draw_text_shadow(screen, large_font, heading, (WIDTH//2, 50))
 
     # color circle
     circle_color = ((red_count / 100) * 255, (green_count / 100) * 255, (blue_count / 100) * 255)
