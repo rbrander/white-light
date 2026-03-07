@@ -41,8 +41,8 @@ def draw_background(screen: pygame.Surface):
 def main_menu(screen: pygame.Surface):
   font = pygame.font.Font(os.path.join("assets", "kenney-fonts", "kenpixel_mini.ttf"), 42)
 
-  new_game_btn = MenuButton("New Game", font, 200)
-  exit_btn = MenuButton("Exit", font, 400)
+  new_game_btn = MenuButton("New Game", font, 300)
+  exit_btn = MenuButton("Exit", font, 600)
   menu_buttons:list[MenuButton] = [
     new_game_btn,
     #MenuButton("Save Game", font),
